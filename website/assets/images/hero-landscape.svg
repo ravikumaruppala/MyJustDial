@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4f6f95"/><stop offset=".38" stop-color="#8d98bb"/><stop offset=".6" stop-color="#d6a3b2"/><stop offset="1" stop-color="#b8c7d8"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9db6cc"/><stop offset=".5" stop-color="#6f93ae"/><stop offset="1" stop-color="#3f6a86"/>
+    </linearGradient>
+    <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c93b0"/><stop offset="1" stop-color="#b3c0d2"/></linearGradient>
+    <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#58799a"/><stop offset="1" stop-color="#9bb0c6"/></linearGradient>
+    <linearGradient id="m3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f5878"/><stop offset="1" stop-color="#6d8fa9"/></linearGradient>
+    <radialGradient id="glow" cx=".3" cy=".4" r=".5"><stop offset="0" stop-color="#ff9f9a" stop-opacity=".85"/><stop offset="1" stop-color="#ff9f9a" stop-opacity="0"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="soft2"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <ellipse cx="520" cy="300" rx="420" ry="190" fill="url(#glow)"/>
+  <g filter="url(#soft)" opacity=".75" fill="#f4b3b0"><ellipse cx="470" cy="250" rx="190" ry="48"/><ellipse cx="640" cy="330" rx="230" ry="40"/><ellipse cx="1050" cy="210" rx="260" ry="36" fill="#cbb8d2"/></g>
+  <!-- far mountains -->
+  <path d="M0 470 C120 410 210 430 300 395 C420 350 520 420 640 400 C760 380 820 340 940 360 C1060 380 1140 330 1260 350 C1390 372 1480 330 1600 360 L1600 600 L0 600Z" fill="url(#m1)" opacity=".9"/>
+  <!-- middle mountains -->
+  <path d="M0 520 C150 470 260 500 380 455 C500 410 600 480 720 470 C860 455 960 380 1100 410 C1230 440 1360 390 1600 430 L1600 620 L0 620Z" fill="url(#m2)" opacity=".92"/>
+  <!-- mist -->
+  <rect x="0" y="470" width="1600" height="120" fill="#d7dfe9" opacity=".35" filter="url(#soft)"/>
+  <!-- near mountains -->
+  <path d="M0 560 C140 520 220 560 330 540 C450 520 520 590 640 585 L640 640 L0 640Z" fill="url(#m3)"/>
+  <path d="M900 600 C1040 520 1130 470 1260 500 C1380 528 1480 470 1600 500 L1600 640 L900 640Z" fill="url(#m3)" opacity=".95"/>
+  <!-- lake -->
+  <rect x="0" y="585" width="1600" height="315" fill="url(#lake)"/>
+  <!-- reflections -->
+  <g opacity=".4" filter="url(#soft2)">
+    <path d="M900 650 C1040 700 1130 760 1260 730 C1380 700 1480 760 1600 730 L1600 650Z" fill="#2a5470"/>
+    <path d="M0 650 C140 690 220 660 330 680 C450 700 520 650 640 655 L640 650 L0 650Z" fill="#2a5470"/>
+    <ellipse cx="420" cy="690" rx="320" ry="26" fill="#e7a9ae" opacity=".55"/>
+  </g>
+  <!-- island with trees -->
+  <g>
+    <path d="M610 640 C650 600 700 590 760 596 C820 602 870 610 905 640 C860 660 700 664 610 640Z" fill="#1b3a4f"/>
+    <g fill="#10303f"><circle cx="705" cy="590" r="22"/><circle cx="740" cy="578" r="28"/><circle cx="778" cy="586" r="24"/><circle cx="812" cy="596" r="18"/><circle cx="676" cy="604" r="16"/></g>
+    <path d="M610 648 C700 668 820 668 905 648 L905 656 C820 676 700 676 610 656Z" fill="#0f2a39" opacity=".55"/>
+  </g>
+  <!-- fishing net on the right -->
+  <g stroke="#27465b" stroke-width="2" fill="none" opacity=".85">
+    <path d="M1180 650 L1210 585 L1260 592 L1300 650"/><path d="M1210 585 L1236 650"/><path d="M1260 592 L1272 650"/>
+    <path d="M1160 652 L1330 652"/><path d="M1165 664 L1320 664" opacity=".5"/>
+  </g>
+  <!-- water highlights -->
+  <g stroke="#ffffff" stroke-opacity=".18" stroke-width="3" stroke-linecap="round">
+    <path d="M120 720 h150"/><path d="M330 760 h210"/><path d="M700 735 h260"/><path d="M1080 780 h200"/><path d="M1350 725 h130"/>
+  </g>
+</svg>

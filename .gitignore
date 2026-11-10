@@ -1,0 +1,60 @@
+# Ignore production database dump
+/database/launc58415_directory.sql
+
+# Ignore database backups
+/database/*.bak
+/database/*.backup
+
+# ==============================
+# Database credentials
+# ==============================
+/config/config.php
+
+# ==============================
+# Uploaded files
+# Keep the upload directories but ignore uploaded content
+# ==============================
+/website/uploads/*
+!/website/uploads/.gitkeep
+
+# ==============================
+# Logs
+# ==============================
+*.log
+/logs/
+
+# ==============================
+# Temporary files
+# ==============================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ==============================
+# Environment variables
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Dependencies
+# ==============================
+/vendor/
+/node_modules/
+
+# ==============================
+# IDE and editor files
+# ==============================
+.vscode/
+.idea/
+
+# ==============================
+# Operating system files
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini

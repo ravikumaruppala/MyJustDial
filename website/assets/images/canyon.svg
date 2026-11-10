@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b1d4a"/><stop offset="1" stop-color="#7a3d62"/></linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#66d4e6"/><stop offset="1" stop-color="#2aa6c9"/></linearGradient>
+    <linearGradient id="o1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6a45c"/><stop offset="1" stop-color="#d9622b"/></linearGradient>
+    <linearGradient id="o2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e57d3b"/><stop offset=".5" stop-color="#f4b27c"/><stop offset="1" stop-color="#c2552d"/></linearGradient>
+    <linearGradient id="p1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f4a78"/><stop offset="1" stop-color="#4a2457"/></linearGradient>
+  </defs>
+  <rect width="720" height="520" fill="url(#bg)"/>
+  <!-- opening to the sky -->
+  <path d="M250 120 C330 60 470 70 540 130 C470 150 400 190 320 175 C290 170 270 150 250 120Z" fill="url(#sky)"/>
+  <!-- flowing rock layers -->
+  <path d="M0 250 C90 170 180 160 255 140 C300 190 330 205 400 205 C300 260 200 320 90 330 C50 332 20 340 0 360Z" fill="url(#p1)"/>
+  <path d="M120 360 C170 270 260 230 340 215 C410 205 470 170 545 135 C640 180 690 250 720 300 L720 520 L0 520 L0 430 C40 400 90 395 120 360Z" fill="url(#o1)"/>
+  <path d="M0 420 C110 360 230 380 330 330 C420 285 520 300 600 250 C650 220 690 240 720 260 L720 520 L0 520Z" fill="url(#o2)" opacity=".92"/>
+  <path d="M60 520 C120 440 230 420 330 400 C450 375 560 340 720 330 L720 520Z" fill="#7a2f3d" opacity=".55"/>
+  <path d="M0 470 C100 430 200 450 300 430 C420 405 500 430 720 400 L720 520 L0 520Z" fill="#b24a46" opacity=".6"/>
+  <!-- light streaks on the rock -->
+  <g fill="none" stroke="#ffd7a8" stroke-opacity=".5" stroke-width="3" stroke-linecap="round">
+    <path d="M150 400 C230 350 310 340 400 310"/><path d="M220 450 C320 410 430 395 520 360"/><path d="M380 270 C440 250 500 230 560 200"/>
+  </g>
+  <path d="M0 0 H250 C230 60 160 120 90 150 C50 168 20 200 0 240Z" fill="#2c1536" opacity=".9"/>
+  <path d="M720 0 V210 C660 150 600 110 540 130 C600 80 660 40 720 0Z" fill="#2c1536" opacity=".85"/>
+</svg>
