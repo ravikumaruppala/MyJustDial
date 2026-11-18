@@ -65,5 +65,6 @@ window.MJD_FIELD_DATA = <?= json_encode($fieldData, JSON_HEX_TAG | JSON_HEX_APOS
 window.MJD_INITIAL_FIELDS = <?= json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.MJD_IS_NEW_FORM = <?= $isNewForm ? 'true' : 'false' ?>;
 window.MJD_SAVE_URL = <?= json_encode($config['base_url'] . '/admin/toolbox/form-manager/save.php') ?>;
+window.MJD_PHP_PREVIEW_URL = <?= json_encode($config['base_url'] . '/admin/toolbox/form-manager/php-preview.php') ?>;
 </script>
-<script src="<?= $base ?>/assets/js/form-builder.js"></script>
+<script src="<?= $base ?>/assets/js/form-builder.js?v=<?= (int)filemtime(__DIR__ . '/../../../assets/js/form-builder.js') ?>"></script>

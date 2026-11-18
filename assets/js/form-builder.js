@@ -25,7 +25,6 @@
 
   var CHOICE_TYPES = ['select', 'radio', 'checkbox_group'];
   var LIST_TYPES = ['country', 'state', 'top_category', 'years'];
-  var TEXT_BLOCK_TYPES = ['html', 'help_alert'];
   var NON_INPUT = ['section', 'html', 'help_alert', 'honeypot', 'captcha', 'submit', 'hidden'];
 
   var nextId = 1;
@@ -117,8 +116,8 @@
         '<textarea class="fb-ctl" rows="3" style="overflow:auto" data-p="options" placeholder="Option 1">' + esc(f.options) + '</textarea>' +
         (LIST_TYPES.indexOf(f.type) >= 0 ? '<div class="fb-muted">Leave blank to use the list stored in the database.</div>' : '') + '</div></div>';
     }
-    if (TEXT_BLOCK_TYPES.indexOf(f.type) >= 0) {
-      extra += '<div class="fb-adv-grid" style="margin-top:14px"><div class="fb-adv-full"><label class="fb-lbl">' + (f.type === 'html' ? 'Custom HTML' : 'Alert Text') + '</label>' +
+    if (f.type === 'help_alert') {
+      extra += '<div class="fb-adv-grid" style="margin-top:14px"><div class="fb-adv-full"><label class="fb-lbl">Alert Text</label>' +
         '<textarea class="fb-ctl" rows="3" style="overflow:auto" data-p="description">' + esc(f.description) + '</textarea></div></div>';
     }
     return '<div class="fb-strip" tabindex="0" role="button" title="Drag to reorder (or use the Up/Down arrow keys)" aria-label="Reorder field"><i class="fa fa-bars"></i></div>' +
@@ -133,7 +132,10 @@
         '</div>' +
       '</div>' +
       '<div class="fb-row">' +
-        '<div class="fb-col"><label>Field Label</label><textarea class="fb-ctl" rows="1" data-p="label" placeholder="Field label">' + esc(f.label) + '</textarea></div>' +
+        '<div class="fb-col"><label>Field Label</label>' +
+          (f.type === 'html'
+            ? '<input class="fb-ctl" data-p="label" value="' + esc(f.label) + '" placeholder="template.php">'
+            : '<textarea class="fb-ctl" rows="1" data-p="label" placeholder="Field label">' + esc(f.label) + '</textarea>') + '</div>' +
         '<div class="fb-col"><label>Database Variable</label><input class="fb-ctl" data-p="name" value="' + esc(f.name) + '" placeholder="database_variable"></div>' +
         '<div class="fb-tools-bottom"><button type="button" class="fb-addfield" data-act="add">Add Field +</button></div>' +
       '</div>' +
@@ -151,7 +153,7 @@
         '<div class="fb-ds-head"><h4>Display Settings</h4><a href="https://support.brilliantdirectories.com/" target="_blank" rel="noopener">Learn More <i class="fa fa-external-link"></i></a></div>' +
         '<div class="fb-ds">' +
           dsItem('Input View', 'inputView', 'altInput', f) + dsItem('Display View', 'displayView', 'altDisplay', f) +
-          dsItem('Lead Previews', 'leadPreviews', null, f) + dsItem('Include In Emails', 'includeEmails', 'altEmail', f) +
+          dsItem('Lead Previews', 'leadPreviews', null, f) + dsItem('Include In', 'includeEmails', 'altEmail', f) +
           dsItem('Table View', 'tableView', 'altTable', f) +
         '</div>' +
         '<div class="fb-admin"><input type="checkbox" id="adm_' + esc(f.id) + '" data-s="adminOnly"' + (s.adminOnly ? ' checked' : '') + '><label for="adm_' + esc(f.id) + '">Admin Only</label></div>' +
@@ -233,9 +235,17 @@
     if (t === 'submit') return '<div class="pv-field"><button type="button" class="pv-submit" disabled>' + esc(f.label || 'Submit') + '</button></div>';
     if (t === 'captcha') return '<div class="pv-field"><div class="pv-note"><input type="checkbox" disabled> I\u2019m not a robot (Google reCaptcha)</div></div>';
     if (t === 'html') {
-      var txt = f.description || f.label;
+      var fieldLabel = String(f.label || '').trim();
+      var labelIsTemplate = /^(?:<\?php\s*(?:include|require)(?:_once)?\s*\(?\s*['\"])?[A-Za-z0-9_-]+\.php(?:['\"]\s*\)?\s*;?\s*\?>)?$/i.test(fieldLabel);
+      var labelIsWidget = /^\s*\[widget=/i.test(fieldLabel);
+      var txt = (labelIsTemplate || labelIsWidget ? fieldLabel : (f.description || fieldLabel)).trim();
       if (/^\s*\[widget=/i.test(txt)) return '<div class="pv-field"><div class="pv-note">' + esc(txt) + '</div></div>';
-      return '<div class="pv-field pv-html">' + esc(txt) + '</div>';
+      var phpFile = txt.match(/^(?:<\?php\s*(?:include|require)(?:_once)?\s*\(?\s*['\"])?([A-Za-z0-9_-]+\.php)(?:['\"]\s*\)?\s*;?\s*\?>)?$/i);
+      if (phpFile) return '<div class="pv-field pv-html"><iframe class="pv-html-frame pv-php-frame" title="PHP template preview" src="' + esc((window.MJD_PHP_PREVIEW_URL || '') + '?file=' + encodeURIComponent(phpFile[1])) + '" style="width:100%;min-height:520px;border:1px solid #dce2e8;border-radius:6px;background:#fff"></iframe></div>';
+      // Render administrator-authored HTML in an isolated preview frame instead of showing source text.
+      var encoded = '';
+      try { encoded = btoa(unescape(encodeURIComponent(txt))); } catch (e) { encoded = btoa(txt); }
+      return '<div class="pv-field pv-html"><iframe class="pv-html-frame" title="Custom HTML preview" sandbox="allow-scripts" data-html="' + encoded + '" style="width:100%;min-height:150px;border:1px solid #dce2e8;border-radius:6px;background:#fff"></iframe></div>';
     }
     if (t === 'help_alert') return '<div class="pv-field"><div class="pv-alert">' + esc(f.description || f.help || f.label) + '</div></div>';
     var label = '<label class="pv-label">' + (f.required ? '<span class="pv-star">*</span>' : '') + esc(f.label) + (s.adminOnly ? ' <small style="font-weight:400;color:#6c7884">(Admin only)</small>' : '') + '</label>';
@@ -243,8 +253,16 @@
     return '<div class="pv-field">' + label + pvControl(f) + help + '</div>';
   }
   function renderPreview() {
-    var html = savedFields.map(pvField).join('');
+    var html = fields.map(pvField).join('');
     preview.innerHTML = html || '<div class="pv-empty"><strong>Your form preview will appear here</strong>Add fields on the left and press Save Changes.</div>';
+    preview.querySelectorAll('.pv-html-frame:not(.pv-php-frame)').forEach(function (frame) {
+      try {
+        var markup = decodeURIComponent(escape(atob(frame.getAttribute('data-html') || '')));
+        frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px Arial,sans-serif;margin:12px;overflow-wrap:anywhere}img,video,iframe{max-width:100%}</style></head><body>' + markup + '</body></html>';
+      } catch (e) {
+        frame.srcdoc = '<p>Unable to preview this HTML. Check the markup and try again.</p>';
+      }
+    });
   }
 
   /* ---------- editing ---------- */
@@ -279,6 +297,7 @@
       }
       if (p === 'name') f.nameTouched = true;
       setDirty(true);
+      if (f.type === 'html' && (p === 'description' || p === 'label')) renderPreview();
       return;
     }
     if (s) {

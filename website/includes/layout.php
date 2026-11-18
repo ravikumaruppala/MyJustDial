@@ -33,8 +33,8 @@ function join_attrs(): string {
 function plan_attrs(string $planKey, string $planName): string {
     global $site;
     $form = $site['forms']['join'];
-    return 'href="' . e(site_url('form.php?name=' . urlencode($form) . '&plan=' . urlencode($planKey))) . '"'
-         . ' data-modal-form="' . e($form) . '" data-modal-title="' . e('Join - ' . $planName . ' Plan') . '" data-plan="' . e($planKey) . '"';
+    $checkout = $planKey === 'free' ? 'checkout_free_form' : 'checkout_paid_form';
+    return 'href="' . e(site_url('create-account.php?plan=' . urlencode($planKey) . '&form=' . urlencode($checkout))) . '"';
 }
 
 /**
@@ -46,6 +46,10 @@ function render_header(array $page = []): void {
     $title  = ($page['title'] ?? '') !== '' ? $page['title'] . ' | ' . $site['name'] : $site['name'] . ' - ' . $site['tagline'];
     $active = $page['active'] ?? '';
     $member = current_member();
+    $memberAccount = $member ? member_account_data() : null;
+    $memberPortal = !empty($page['member_portal']) && $memberAccount !== null;
+    $memberSection = $page['member_section'] ?? '';
+    $GLOBALS['member_portal_page'] = $memberPortal;
     $forms  = $site['forms'];
     ?>
 <!DOCTYPE html>
@@ -61,8 +65,10 @@ function render_header(array $page = []): void {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="<?= e(asset_url('css/website.css')) ?>">
+    <?php if ($memberAccount): ?><link rel="stylesheet" href="<?= e(asset_url('css/member-account.css') . '?v=' . filemtime(__DIR__ . '/../assets/css/member-account.css')) ?>"><?php endif; ?>
+    <?= $page['extra_head'] ?? '' ?>
 </head>
-<body class="<?= e($page['body_class'] ?? '') ?>">
+<body class="<?= e(trim(($page['body_class'] ?? '') . ($memberPortal ? ' member-portal' : ''))) ?>">
 <a class="skip-link" href="#main">Skip to content</a>
 
 <!-- Logo + contact actions -->
@@ -73,15 +79,47 @@ function render_header(array $page = []): void {
             <span class="brand-text"><strong><?= e($site['name']) ?></strong><small><?= e($site['tagline']) ?></small></span>
         </a>
         <div class="header-actions">
-            <a class="hdr-link hdr-phone" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $site['phone'])) ?>"><?= e($site['phone']) ?></a>
-            <a class="hdr-link" <?= modal_attrs($forms['contact'], 'Contact Us') ?>><i class="fa fa-envelope-o"></i> Contact</a>
-            <?php if ($member): ?>
-                <span class="hdr-link hdr-user"><i class="fa fa-user-circle-o"></i> Hi, <?= e($member['name']) ?></span>
-                <a class="hdr-link" href="<?= e(site_url('logout.php')) ?>"><i class="fa fa-sign-out"></i> Logout</a>
+            <?php if ($memberPortal): ?>
+                <div class="member-account-menu">
+                    <button class="member-account-toggle" type="button" aria-expanded="false" aria-controls="memberAccountDropdown">
+                        <i class="fa fa-user-circle-o"></i> Welcome, <?= e($memberAccount['first_name'] ?: 'Member') ?> <i class="fa fa-angle-down"></i>
+                    </button>
+                    <div class="member-account-dropdown" id="memberAccountDropdown">
+                        <?php if ($memberAccount['profile_photo'] !== ''): ?><img class="member-dropdown-photo" src="<?= e(site_url($memberAccount['profile_photo'])) ?>" alt="Profile photo"><?php else: ?><i class="fa fa-user-circle-o member-dropdown-placeholder"></i><?php endif; ?>
+                        <strong><?= e($memberAccount['display_name']) ?></strong>
+                        <small><?= e($memberAccount['email']) ?></small>
+                        <p>Status: <?= (int)$memberAccount['active'] === (int)$site['member_active'] ? 'Active' : 'Inactive' ?></p>
+                        <p>Plan: <?= e($memberAccount['plan_name']) ?></p>
+                        <a href="<?= e(site_url('search.php?listing=' . (int)$memberAccount['user_id'])) ?>">View Listing</a>
+                        <a href="<?= e(site_url('member-dashboard.php')) ?>">Dashboard</a>
+                        <a href="<?= e(site_url('logout.php')) ?>">Logout</a>
+                    </div>
+                </div>
             <?php else: ?>
-                <a class="hdr-link" <?= modal_attrs($forms['login'], 'Member Login') ?>><i class="fa fa-sign-in"></i> Login</a>
+            <a class="hdr-link hdr-phone" href="tel:<?= e(preg_replace('/[^0-9+]/', '', $site['phone'])) ?>"><?= e($site['phone']) ?></a>
+            <a class="hdr-link" href="<?= e(site_url('contact.php')) ?>"><i class="fa fa-envelope-o"></i> Contact</a>
+            <?php if ($member && $memberAccount): ?>
+                <div class="member-account-menu">
+                    <button class="member-account-toggle" type="button" aria-expanded="false" aria-controls="memberAccountDropdown">
+                        <?php if ($memberAccount['profile_photo'] !== ''): ?><img src="<?= e(site_url($memberAccount['profile_photo'])) ?>" alt=""><?php else: ?><i class="fa fa-user-circle-o"></i><?php endif; ?>
+                        Welcome, <?= e($memberAccount['first_name']) ?> <i class="fa fa-angle-down"></i>
+                    </button>
+                    <div class="member-account-dropdown" id="memberAccountDropdown">
+                        <?php if ($memberAccount['profile_photo'] !== ''): ?><img class="member-dropdown-photo" src="<?= e(site_url($memberAccount['profile_photo'])) ?>" alt="Profile photo"><?php else: ?><i class="fa fa-user-circle-o member-dropdown-placeholder"></i><?php endif; ?>
+                        <strong><?= e($memberAccount['display_name']) ?></strong>
+                        <small><?= e($memberAccount['email']) ?></small>
+                        <p>Status: <?= (int)$memberAccount['active'] === (int)$site['member_active'] ? 'Active' : 'Inactive' ?></p>
+                        <p>Plan: <?= e($memberAccount['plan_name']) ?></p>
+                        <a href="<?= e(site_url('search.php?listing=' . (int)$memberAccount['user_id'])) ?>">View Listing</a>
+                        <a href="<?= e(site_url('member-dashboard.php')) ?>">Dashboard</a>
+                        <a href="<?= e(site_url('logout.php')) ?>">Logout</a>
+                    </div>
+                </div>
+            <?php else: ?>
+                <a class="hdr-link" href="<?= e(site_url('member-login.php')) ?>"><i class="fa fa-sign-in"></i> Login</a>
             <?php endif; ?>
             <a class="btn btn-join" <?= join_attrs() ?>><i class="fa fa-plus-circle"></i> Members &ndash; Join Today</a>
+            <?php endif; ?>
         </div>
     </div>
 </header>
@@ -96,6 +134,42 @@ function render_header(array $page = []): void {
     </ul>
 </nav>
 <main id="main">
+<?php if ($memberPortal): ?>
+<div class="member-portal-shell">
+    <div class="member-portal-rail" aria-hidden="true">
+        <i class="fa fa-bars"></i><i class="fa fa-home"></i><i class="fa fa-folder-open-o"></i><i class="fa fa-code"></i><i class="fa fa-search"></i><i class="fa fa-comments"></i><i class="fa fa-pencil"></i><i class="fa fa-user"></i><i class="fa fa-refresh"></i><i class="fa fa-times"></i>
+    </div>
+    <aside class="member-portal-sidebar" aria-label="Member account navigation">
+        <div class="member-profile-card">
+            <?php if ($memberAccount['profile_photo'] !== ''): ?>
+                <img class="member-sidebar-avatar" src="<?= e(site_url($memberAccount['profile_photo'])) ?>" alt="Profile photo">
+            <?php else: ?>
+                <span class="member-sidebar-avatar member-avatar-placeholder"><i class="fa fa-user"></i></span>
+            <?php endif; ?>
+            <a class="member-public-link" href="<?= e(site_url('search.php?listing=' . (int)$memberAccount['user_id'])) ?>" target="_blank" rel="noopener">View Public Listing <i class="fa fa-external-link"></i></a>
+            <span>Member ID #<?= (int)$memberAccount['user_id'] ?></span>
+            <span>Plan: <?= e($memberAccount['plan_name']) ?></span>
+            <a class="member-change-plan" href="<?= e(site_url('member-billing.php')) ?>">Change Membership Plan</a>
+        </div>
+        <nav class="member-sidebar-links" aria-label="Account sections">
+            <a class="<?= $memberSection === 'dashboard' ? 'is-active' : '' ?>" href="<?= e(site_url('member-dashboard.php')) ?>"><i class="fa fa-home"></i> My Dashboard</a>
+            <a class="<?= in_array($memberSection, ['contact','profile','listing','about'], true) ? 'is-active' : '' ?>" href="<?= e(site_url('contact-details.php')) ?>"><i class="fa fa-list-alt"></i> Manage Listing <i class="fa fa-angle-down"></i></a>
+            <a class="member-sidebar-subitem" href="<?= e(site_url('contact-details.php')) ?>">- Basic Information</a>
+            <span><i class="fa fa-check-square-o"></i> Manage Leads</span>
+            <span><i class="fa fa-star-o"></i> Manage Reviews</span>
+            <span><i class="fa fa-bookmark"></i> My Favorites</span>
+            <a href="<?= e(site_url('blog.php')) ?>"><i class="fa fa-pencil"></i> Community Articles</a>
+            <a href="<?= e(site_url('member-billing.php')) ?>"><i class="fa fa-cog"></i> Account</a>
+        </nav>
+    </aside>
+    <div class="member-portal-main">
+        <nav class="member-section-tabs" aria-label="Member profile sections">
+            <a class="<?= $memberSection === 'contact' ? 'is-active' : '' ?>" href="<?= e(site_url('contact-details.php')) ?>"><i class="fa fa-info-circle"></i> Contact Details</a>
+            <a class="<?= $memberSection === 'profile' ? 'is-active' : '' ?>" href="<?= e(site_url('profile-photo.php')) ?>"><i class="fa fa-info-circle"></i> Profile Photo</a>
+            <a class="<?= $memberSection === 'listing' ? 'is-active' : '' ?>" href="<?= e(site_url('listing-details.php')) ?>"><i class="fa fa-check-circle-o"></i> Listing Details</a>
+            <a class="<?= $memberSection === 'about' ? 'is-active' : '' ?>" href="<?= e(site_url('about-member.php')) ?>"><i class="fa fa-info-circle"></i> About Me</a>
+        </nav>
+<?php endif; ?>
 <?php
 }
 
@@ -104,6 +178,7 @@ function render_footer(): void {
     global $site;
     $forms = $site['forms'];
     ?>
+<?php if (!empty($GLOBALS['member_portal_page'])): ?></div></div><?php endif; ?>
 </main>
 
 <footer class="site-footer">
@@ -117,7 +192,7 @@ function render_footer(): void {
                 <h4>Website</h4>
                 <ul>
                     <li><a href="<?= e(site_url('how-it-works.php')) ?>">How It Works</a></li>
-                    <li><a <?= modal_attrs($forms['contact'], 'Contact Us') ?>>Contact Us</a></li>
+                    <li><a href="<?= e(site_url('contact.php')) ?>">Contact Us</a></li>
                 </ul>
             </div>
             <div>
@@ -130,8 +205,8 @@ function render_footer(): void {
             <div>
                 <h4>Support</h4>
                 <ul>
-                    <li><a <?= modal_attrs($forms['login'], 'Member Login') ?>>Member Login</a></li>
-                    <li><a href="#" data-modal-static="reset">Reset Password</a></li>
+                    <li><a href="<?= e(site_url('member-login.php')) ?>">Member Login</a></li>
+                    <li><a href="<?= e(site_url('member-forgot-password.php')) ?>">Reset Password</a></li>
                 </ul>
             </div>
         </div>
@@ -157,10 +232,17 @@ function render_footer(): void {
 <!-- Static notices (text only) -->
 <template id="tpl-terms"><p>By using <?= e($site['name']) ?> you agree to use the directory lawfully and to provide accurate information when you register or contact a member. Listings are provided by members; please verify details before you rely on them.</p></template>
 <template id="tpl-privacy"><p>We only collect the details you type into our forms (for example name, email and message) so that members and our team can reply to you. We do not sell your information.</p></template>
-<template id="tpl-reset"><p>To reset your password please contact the website administrator. Automatic reset by email is not enabled on this website yet.</p></template>
+
 
 <script>window.MJD = { formEndpoint: <?= json_encode(site_url('form-submit.php')) ?> };</script>
 <script src="<?= e(asset_url('js/website.js')) ?>"></script>
+<?php if (current_member()): ?><script>
+document.addEventListener('DOMContentLoaded',function(){
+ const toggle=document.querySelector('.member-account-toggle');
+ const menu=document.querySelector('.member-account-dropdown');
+ if(toggle&&menu){toggle.addEventListener('click',function(){const open=menu.classList.toggle('is-open');toggle.setAttribute('aria-expanded',open?'true':'false');});document.addEventListener('click',function(e){if(!e.target.closest('.member-account-menu')){menu.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');}});}
+});
+</script><?php endif; ?>
 </body>
 </html>
 <?php

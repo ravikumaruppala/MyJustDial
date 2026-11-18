@@ -368,3 +368,167 @@ body.modal-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+
+/* ---------- 14. Screenshot-aligned typography, shared hero art and responsive polish ---------- */
+body { font-size: 15px; line-height: 1.5; }
+h1 { font-size: clamp(27px, 3vw, 36px); }
+h2 { font-size: clamp(21px, 2.2vw, 27px); }
+h3 { font-size: 18px; }
+h4 { font-size: 15px; }
+.container { max-width: 1240px; }
+.brand img { width: 44px; height: 44px; }
+.brand-text strong { font-size: 27px; }
+.brand-text small { font-size: 14px; }
+.header-actions { gap: 12px 18px; }
+.hdr-link { font-size: 14px; }
+.btn, .control { font-size: 14px; }
+.btn { padding: 9px 16px; }
+.btn-join { padding: 10px 16px; }
+.nav-list a { font-size: 14px; padding: 12px 10px; }
+.hero { background-image: url("../images/hero-landscape.svg"); background-position: center; }
+.hero-home { min-height: 440px; align-items: center; }
+.hero-home .hero-inner { padding-top: 70px; padding-bottom: 58px; }
+.hero-home h1 { font-size: clamp(30px, 4.2vw, 48px); line-height: 1.12; }
+.hero-search label { font-size: 14px; }
+.hero-page .hero-inner { padding: 70px 24px 64px; }
+.hero-page .eyebrow { font-size: 22px; }
+.hero-page h1 { font-size: clamp(30px, 4.5vw, 48px); }
+.feature-band { padding: 42px 0; }
+.feature-item .circle { width: 64px; height: 64px; font-size: 28px; margin-bottom: 12px; }
+.feature-item h3 { font-size: 18px; }
+.feature-item p { font-size: 14px; }
+.members-section { padding: 48px 0 20px; }
+.section-title { font-size: clamp(23px, 2.6vw, 30px); margin-bottom: 24px; }
+.member-card { min-height: 160px; padding: 18px; }
+.member-card h3 { font-size: 15px; }
+.info-block { padding: 32px; gap: 28px; }
+.info-block h2, .cta-card h3 { font-size: 23px; }
+.info-block p { font-size: 15px; line-height: 1.55; }
+.cta-grid { gap: 22px; padding: 28px 0 52px; }
+.cta-card { padding: 22px; }
+.two-col { grid-template-columns: 250px minmax(0,1fr); gap: 28px; padding-top: 28px; padding-bottom: 52px; }
+.side-card { padding: 20px; margin-bottom: 22px; }
+.side-card h3 { font-size: 18px; }
+.side-card label { font-size: 14px; }
+.side-card .control { height: 42px; }
+.side-card ol { font-size: 14px; }
+.side-card .btn { padding: 10px; font-size: 14px; }
+.results-count { font-size: 14px; }
+.directory-title, .blog-head h1 { font-size: clamp(26px, 3vw, 34px); }
+.result { grid-template-columns: 112px minmax(0,1fr) auto 170px; gap: 10px 16px; padding: 20px 0; }
+.result-avatar { width: 104px; height: 104px; }
+.result-main h2 { font-size: 21px; }
+.result-company { font-size: 15px; margin-bottom: 12px; }
+.result-loc { font-size: 14px; }
+.save-btn { font-size: 12px; }
+.result-actions { padding: 12px; }
+.result-actions .btn { font-size: 13px; padding: 9px 7px; }
+.no-results, .alert-info { font-size: 15px; padding: 16px; }
+.promo-slide { grid-template-columns: 90px minmax(0,1fr) 190px; }
+.promo-star { font-size: 52px; }
+.promo-slide h3 { font-size: 22px; }
+.listing { padding: 24px; }
+.listing-head { grid-template-columns: 120px minmax(0,1fr); gap: 18px; }
+.listing-head img { width: 112px; height: 112px; }
+.listing-head h1 { font-size: 30px; }
+.listing-meta h4 { font-size: 12px; }
+.listing-actions .btn { min-width: 150px; }
+.post-body { font-size: 15px; line-height: 1.65; }
+.post-card h2 { font-size: 19px; }
+.how { gap: 48px; padding: 58px 24px 72px; }
+.steps h2 { font-size: 23px; margin-bottom: 8px; }
+.steps p { font-size: 15px; margin-bottom: 22px; }
+.steps .btn { font-size: 14px; padding: 11px 18px; border-radius: 8px; }
+.plans { padding-top: 40px; padding-bottom: 60px; }
+.plan { grid-template-columns: 250px minmax(0,1fr); gap: 22px; margin-bottom: 42px; }
+.plan-box h2 { font-size: 30px; }
+.plan-price { font-size: 22px; }
+.btn-select { font-size: 15px; padding: 11px 22px; border-radius: 8px; }
+.plan-desc { font-size: 15px; line-height: 1.5; }
+.plan-features { font-size: 14px; line-height: 1.45; }
+.site-footer { padding: 38px 0 42px; }
+.footer-grid { gap: 22px; }
+.site-footer h4 { font-size: 16px; margin-bottom: 10px; }
+.site-footer p, .site-footer a { font-size: 14px; line-height: 1.5; }
+.site-footer li { margin-bottom: 6px; }
+.footer-cta { margin: 34px 0 24px; }
+.footer-mail { font-size: 24px; }
+.btn-footer-join { padding: 14px 18px; font-size: 15px; }
+.copyright, .copyright span, .copyright a { font-size: 12px !important; }
+.mjd-control { font-size: 14px; min-height: 42px; }
+.mjd-submit-btn { font-size: 15px; padding: 12px; }
+.mjd-modal-dialog { max-width: 560px; }
+.page-banner { background-image: url("../images/hero-landscape.svg"); background-size: cover; background-position: center; }
+.content-page { padding-top: 42px; padding-bottom: 56px; }
+.contact-page { display: grid; grid-template-columns: .8fr 1.2fr; gap: 36px; align-items: start; }
+.narrow-page { max-width: 820px; }
+.account-page { max-width: 780px; padding-top: 44px; padding-bottom: 64px; text-align: center; }
+.account-page > h1 { font-size: 34px; margin-bottom: 6px; }
+.account-page .eyebrow { font-size: 20px; margin-bottom: 0; }
+.account-plan { color: var(--muted); margin-bottom: 24px; }
+.account-form-card { text-align: left; max-width: 680px; margin: 0 auto; padding: 26px; }
+.account-form-card h2 { font-size: 22px; }
+.account-form-card p { font-size: 14px; }
+.form-card h1 { font-size: 26px; }
+.form-card h2 { font-size: 22px; }
+.mjd-html-content { max-width: 100%; overflow-wrap: anywhere; }
+.mjd-html-content img { max-width: 100%; height: auto; }
+@media (max-width: 991px) {
+  .header-inner { flex-direction: row; align-items: center; }
+  .header-actions { justify-content: flex-end; }
+  .brand-text strong { font-size: 24px; }
+  .two-col { grid-template-columns: 1fr; }
+  .contact-page { grid-template-columns: 1fr; }
+  .result { grid-template-columns: 96px minmax(0,1fr) auto; }
+  .result-actions { grid-column: 2 / -1; }
+  .plan { grid-template-columns: 1fr; }
+  .plan-box { max-width: 360px; }
+}
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  .header-inner { flex-direction: column; align-items: flex-start; padding-top: 10px; padding-bottom: 10px; }
+  .brand img { width: 38px; height: 38px; }
+  .brand-text strong { font-size: 22px; }
+  .brand-text small { font-size: 12px; }
+  .header-actions { width: 100%; justify-content: flex-start; gap: 10px 14px; }
+  .hdr-link { font-size: 13px; }
+  .btn-join { font-size: 12px; }
+  .hero-home { min-height: 0; }
+  .hero-home .hero-inner { padding: 56px 16px 38px; }
+  .hero-home h1 { font-size: 30px; }
+  .hero-page .hero-inner { padding: 48px 16px; }
+  .hero-page .eyebrow { font-size: 17px; }
+  .hero-page h1 { font-size: 29px; }
+  .feature-grid { gap: 24px; }
+  .member-grid { grid-template-columns: 1fr; }
+  .info-block { padding: 20px; margin: 24px 0; }
+  .cta-grid { grid-template-columns: 1fr; padding-bottom: 36px; }
+  .result { grid-template-columns: 72px minmax(0,1fr); }
+  .result-avatar { width: 68px; height: 68px; }
+  .result-main h2 { font-size: 17px; }
+  .result .save-btn { grid-column: 1 / -1; }
+  .result-actions { grid-column: 1 / -1; flex-direction: column; }
+  .result-actions .btn { width: 100%; }
+  .listing-head { grid-template-columns: 1fr; text-align: center; }
+  .listing-head img { margin: 0 auto; }
+  .listing-actions { justify-content: center; }
+  .plan-box { max-width: none; }
+  .plan-features { columns: 1; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .footer-about { grid-column: 1 / -1; }
+  .footer-cta { grid-template-columns: 1fr; gap: 16px; }
+  .footer-mail { padding-left: 0; }
+  .account-page > h1 { font-size: 28px; }
+  .account-form-card { padding: 18px; }
+}
+
+/* Rating controls used by the public member review form */
+.mjd-rating-choices { display:flex; gap:10px; align-items:center; }
+.mjd-rating-choice { display:inline-flex; align-items:center; cursor:pointer; color:#c7cbd1; font-size:25px; line-height:1; }
+.mjd-rating-choice input { position:absolute; opacity:0; width:1px; height:1px; }
+.mjd-rating-choice:has(input:checked), .mjd-rating-choice:has(input:focus-visible) { color:#e5a52f; }
+.mjd-rating-choice:focus-within { outline:2px solid #4a90d9; outline-offset:3px; border-radius:3px; }
+.sr-only { position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+.listing-quote { font-size:16px; font-weight:600; }

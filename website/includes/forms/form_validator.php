@@ -32,8 +32,10 @@ function validate_submission(PDO $pdo, array $form, array $post, array $files): 
             }
             $ext = strtolower(pathinfo((string)$file['name'], PATHINFO_EXTENSION));
             if ((int)$file['error'] !== UPLOAD_ERR_OK) { $errors[$name] = 'The file could not be uploaded.'; }
-            elseif ($file['size'] > $site['upload_max_bytes']) { $errors[$name] = 'The file is larger than ' . round($site['upload_max_bytes'] / 1048576) . ' MB.'; }
-            elseif (!in_array($ext, $site['upload_allowed'], true)) { $errors[$name] = 'Allowed file types: ' . implode(', ', $site['upload_allowed']) . '.'; }
+            elseif ($file['size'] > ($form['name'] === 'profile_photo_handler_form' ? 5 * 1024 * 1024 : $site['upload_max_bytes'])) { $errors[$name] = 'The file is too large. Maximum size is 5 MB.'; }
+            elseif ($form['name'] === 'profile_photo_handler_form' && !in_array($ext, ['jpg','jpeg','png','gif','webp'], true)) { $errors[$name] = 'Please upload a JPG, GIF, PNG or WEBP image.'; }
+            elseif ($form['name'] === 'profile_photo_handler_form' && (!@getimagesize($file['tmp_name']) || !in_array((string)(new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']), ['image/jpeg','image/png','image/gif','image/webp'], true))) { $errors[$name] = 'The uploaded file is not a valid JPG, GIF, PNG or WEBP image.'; }
+            elseif (!in_array($ext, $site['upload_allowed'], true) && $form['name'] !== 'profile_photo_handler_form') { $errors[$name] = 'Allowed file types: ' . implode(', ', $site['upload_allowed']) . '.'; }
             else { $uploads[$name] = ['tmp' => $file['tmp_name'], 'ext' => $ext, 'original' => $file['name']]; }
             continue;
         }
@@ -60,6 +62,10 @@ function validate_submission(PDO $pdo, array $form, array $post, array $files): 
             continue;
         }
         if (mb_strlen($value) > ($multiline ? 10000 : 255)) { $errors[$name] = "$label is too long."; continue; }
+        if ($form['name'] === 'member_contact_details_form' && $name === 'search_description' && mb_strlen($value) > 170) {
+            $errors[$name] = "$label must be 170 characters or fewer.";
+            continue;
+        }
 
         switch ($type) {
             case 'email':
@@ -80,6 +86,7 @@ function validate_submission(PDO $pdo, array $form, array $post, array $files): 
                 break;
             case 'number':
                 if (!preg_match('/^-?\d+$/', $value)) { $errors[$name] = 'Enter a whole number.'; }
+                elseif (strpos($name, 'rating_') === 0 && ((int)$value < 1 || (int)$value > 5)) { $errors[$name] = 'Choose a rating from 1 to 5.'; }
                 break;
             case 'price':
                 if (!preg_match('/^\d+(\.\d{1,2})?$/', $value)) { $errors[$name] = 'Enter a valid amount.'; }
@@ -92,14 +99,36 @@ function validate_submission(PDO $pdo, array $form, array $post, array $files): 
                 if (!DateTime::createFromFormat('Y-m-d\TH:i', $value)) { $errors[$name] = 'Enter a valid date and time.'; }
                 break;
             case 'password':
-                if (mb_strlen($value) < 6) { $errors[$name] = 'Use at least 6 characters.'; }
+                if (in_array($form['name'], ['checkout_free_form','checkout_paid_form','users_basic_contact_form','member_password_reset_form'], true)) {
+                    if (mb_strlen($value) < 8 || !preg_match('/[A-Z]/', $value) || !preg_match('/[a-z]/', $value) || !preg_match('/[0-9]/', $value) || !preg_match('/[^A-Za-z0-9]/', $value)) {
+                        $errors[$name] = 'Use at least 8 characters including uppercase, lowercase, a number and a special character.';
+                    }
+                } elseif (mb_strlen($value) < 6) { $errors[$name] = 'Use at least 6 characters.'; }
                 break;
             case 'select': case 'radio': case 'yes_no': case 'country': case 'state': case 'top_category': case 'years':
                 $allowed = form_field_options($pdo, $f);
                 if ($allowed && !in_array($value, $allowed, true)) { $errors[$name] = 'Choose one of the listed options.'; }
+                if (strpos($name, 'rating_') === 0 && !in_array($value, ['1','2','3','4','5'], true)) { $errors[$name] = 'Choose a rating from 1 to 5.'; }
                 break;
         }
         $values[$name] = $value;
+    }
+
+    // The Profile Photo PHP template can render its two named upload controls without
+    // requiring duplicate visible Form Manager file widgets. Validate them here as well.
+    if ($form['name'] === 'profile_photo_handler_form') {
+        foreach (['profile_photo', 'company_logo'] as $imageField) {
+            if (isset($uploads[$imageField]) || !isset($files[$imageField])) continue;
+            $file = $files[$imageField];
+            if (!$file || (int)($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) continue;
+            $ext = strtolower(pathinfo((string)$file['name'], PATHINFO_EXTENSION));
+            $mime = class_exists('finfo') ? (string)(new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']) : '';
+            $validMime = ['image/jpeg','image/gif','image/png','image/webp'];
+            if ((int)$file['error'] !== UPLOAD_ERR_OK) $errors[$imageField] = 'The image could not be uploaded.';
+            elseif ((int)$file['size'] > 5 * 1024 * 1024) $errors[$imageField] = 'Image must be 5 MB or smaller.';
+            elseif (!in_array($ext, ['jpg','jpeg','gif','png','webp'], true) || !@getimagesize($file['tmp_name']) || !in_array($mime, $validMime, true)) $errors[$imageField] = 'Please upload a valid JPG, GIF, PNG or WEBP image.';
+            else $uploads[$imageField] = ['tmp' => $file['tmp_name'], 'ext' => $ext, 'original' => $file['name']];
+        }
     }
 
     // "email_confirm" must equal "email", "password_confirm" must equal "password", ...

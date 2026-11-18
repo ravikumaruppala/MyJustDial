@@ -32,7 +32,7 @@ function render_member_result(array $m): string {
         <button class="save-btn" type="button" data-save-member="<?= $id ?>" aria-pressed="false"><i class="fa fa-bookmark"></i> SAVE</button>
         <div class="result-actions">
             <a class="btn btn-primary" href="<?= e(site_url('search.php?listing=' . $id)) ?>">View Listing</a>
-            <a class="btn btn-dark" <?= modal_attrs($site['forms']['contact'], 'Send Message to ' . member_name($m), $id) ?>>Send Message</a>
+            <a class="btn btn-dark" href="<?= e(site_url('member-message.php?member=' . $id)) ?>">Send Message</a>
             <?php if ($phone !== ''): ?>
                 <button class="btn btn-outline" type="button" data-reveal-phone="<?= e($phone) ?>"><i class="fa fa-phone"></i> See Phone Number</button>
             <?php endif; ?>

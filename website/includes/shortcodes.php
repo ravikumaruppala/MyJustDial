@@ -6,8 +6,8 @@
  */
 
 /** Replace every [form=name] in $content with the rendered form. */
-function do_shortcodes(string $content): string {
-    return preg_replace_callback('/\[form=([A-Za-z0-9_\-]+)\]/', static function (array $m): string {
-        return render_form($m[1]);
+function do_shortcodes(string $content, array $options = []): string {
+    return preg_replace_callback('/\[form=([A-Za-z0-9_\-]+)\]/', static function (array $m) use ($options): string {
+        return render_form($m[1], $options);
     }, $content);
 }

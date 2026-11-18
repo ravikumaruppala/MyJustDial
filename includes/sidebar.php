@@ -2,7 +2,7 @@
 /* Sidebar: every item with children opens a fly-out beside it on hover and expands downward on click. */
 $base = e($config['base_url']);
 $nav = [
-    ['key' => 'members', 'icon' => 'fa-users', 'label' => 'My Members', 'items' => [['Manage Members', '#'], ['Add New Member', '#'], ['Membership Plans', '#'], ['Smart Lists', '#']]],
+    ['key' => 'members', 'icon' => 'fa-users', 'label' => 'My Members', 'items' => [['Manage Members', $config['base_url'] . '/admin/my-members.php', 'members'], ['Add New Member', '#'], ['Membership Plans', '#'], ['Smart Lists', '#']]],
     ['key' => 'content', 'icon' => 'fa-folder-o', 'label' => 'My Content', 'items' => [['Web Pages', '#'], ['Post Types', '#'], ['Blog Articles', '#'], ['Categories', '#']]],
     ['key' => 'interactions', 'icon' => 'fa-comment-o', 'label' => 'Interactions', 'items' => [['Leads', '#'], ['Inquiries', '#'], ['Reviews', '#'], ['Comments', '#']]],
     ['key' => 'finance', 'icon' => 'fa-bar-chart', 'label' => 'Finance', 'items' => [['Transactions', '#'], ['Invoices', '#'], ['Coupons', '#'], ['Payment Settings', '#']]],

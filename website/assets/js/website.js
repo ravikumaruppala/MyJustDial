@@ -118,7 +118,8 @@
       .then(function (result) {
         if (result.ok) {
           showThanks(form, result.message);
-          if (result.reload) { setTimeout(function () { window.location.reload(); }, 700); }
+          if (result.redirect) { setTimeout(function () { window.location.assign(result.redirect); }, 350); }
+          else if (result.reload) { setTimeout(function () { window.location.reload(); }, 700); }
           return;
         }
         var firstBad = null;

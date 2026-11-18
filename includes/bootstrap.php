@@ -56,3 +56,8 @@ function verifyCsrf(): void {
         exit('Your session token expired. Refresh the page and try again.');
     }
 }
+
+// Ensure the Day 2 shortcode forms are available in the existing Form Manager.
+require_once __DIR__ . '/form_fields.php';
+require_once __DIR__ . '/../website/includes/forms/form_seed.php';
+ensure_day2_forms($pdo);

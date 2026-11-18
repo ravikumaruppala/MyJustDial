@@ -156,7 +156,11 @@ function renderMiniForm(array $fields): string {
         if ($t === 'captcha') { $html .= '<div class="mf"><div class="mf-note">I\'m not a robot</div></div>'; continue; }
         if ($t === 'html') {
             $text = (string)($f['description'] !== '' ? $f['description'] : $f['label']);
-            $html .= '<div class="mf"><div class="' . (stripos($text, '[widget=') !== false ? 'mf-note' : 'mf-text') . '">' . e(mb_substr(strip_tags($text), 0, 140)) . '</div></div>';
+            if (preg_match('/^\s*\[widget=/i', $text)) {
+                $html .= '<div class="mf"><div class="mf-note">Theme widget placeholder</div></div>';
+            } else {
+                $html .= '<div class="mf mf-custom-html">' . $text . '</div>';
+            }
             continue;
         }
         if ($t === 'help_alert') { $html .= '<div class="mf"><div class="mf-note">' . e($f['description'] ?: $f['label']) . '</div></div>'; continue; }

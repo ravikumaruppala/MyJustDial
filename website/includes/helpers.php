@@ -69,6 +69,51 @@ function current_member(): ?array {
         : null;
 }
 
+
+/** Full member record for authenticated account pages. */
+function member_account_data(): ?array {
+    global $pdo;
+    $member = current_member();
+    if (!$member || !tableExists($pdo, 'users_data')) return null;
+    $q = $pdo->prepare('SELECT * FROM users_data WHERE user_id=? LIMIT 1');
+    $q->execute([(int)$member['id']]);
+    $row = $q->fetch();
+    if (!$row) return null;
+    $row['display_name'] = member_name($row);
+    $row['profile_photo'] = '';
+    $row['company_logo'] = '';
+    if (tableExists($pdo, 'users_photo')) {
+        $q = $pdo->prepare('SELECT type,file FROM users_photo WHERE user_id=? ORDER BY photo_id DESC');
+        $q->execute([(int)$row['user_id']]);
+        foreach ($q->fetchAll() as $photo) {
+            if ($photo['type'] === 'photo' && $row['profile_photo'] === '') $row['profile_photo'] = $photo['file'];
+            if ($photo['type'] === 'logo' && $row['company_logo'] === '') $row['company_logo'] = $photo['file'];
+        }
+    }
+    $row['meta'] = [];
+    if (tableExists($pdo, 'users_meta')) {
+        $q = $pdo->prepare("SELECT `key`,`value` FROM users_meta WHERE `database`='users_data' AND database_id=?");
+        $q->execute([(int)$row['user_id']]);
+        foreach ($q->fetchAll() as $meta) $row['meta'][$meta['key']] = $meta['value'];
+    }
+    if ($row['profile_photo'] === '' && !empty($row['meta']['profile_photo'])) $row['profile_photo'] = $row['meta']['profile_photo'];
+    if ($row['company_logo'] === '' && !empty($row['meta']['company_logo'])) $row['company_logo'] = $row['meta']['company_logo'];
+    $q = $pdo->prepare('SELECT subscription_name FROM subscription_types WHERE subscription_id=? LIMIT 1');
+    $q->execute([(int)$row['subscription_id']]);
+    $row['plan_name'] = (string)($q->fetchColumn() ?: 'Membership Plan');
+    return $row;
+}
+
+/** Redirect unauthenticated visitors to the existing public member login. */
+function require_member_account(): array {
+    $member = member_account_data();
+    if (!$member) {
+        header('Location: ' . site_url('member-login.php'));
+        exit;
+    }
+    return $member;
+}
+
 /** Renders pagination links for ?page=N while keeping the other query parameters. */
 function render_pagination(int $total, int $perPage, int $page): string {
     $pages = (int)ceil($total / max(1, $perPage));

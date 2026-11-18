@@ -1,11 +1,10 @@
 <?php
 require __DIR__ . '/../../../includes/bootstrap.php';
 require __DIR__ . '/../../../includes/auth.php';
-require __DIR__ . '/../../../includes/form_fields.php';
+require_once __DIR__ . '/../../../includes/form_fields.php';
 $pageTitle='Form Manager'; $activeMenu='forms';
 
-/* The two rows already in forms are custom forms, regardless of legacy action_type.
-   The 35 system forms shown in the BD reference are stored separately to protect them. */
+/* Keep protected defaults and unfinished empty records out of the custom-form list. */
 $pdo->exec("CREATE TABLE IF NOT EXISTS default_forms_catalog (
  default_form_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
  form_name VARCHAR(255) NOT NULL, short_code VARCHAR(255) NOT NULL,
@@ -55,7 +54,8 @@ $type=in_array($typeRaw,['member','posts','general'],true)?$typeRaw:'all';
 if(!in_array($sort,['name','name_desc','newest','oldest'],true)){$sort='name';}
 $orderMap=['name'=>'form_title ASC, form_name ASC','name_desc'=>'form_title DESC, form_name DESC','newest'=>'form_id DESC','oldest'=>'form_id ASC'];
 $order=$orderMap[$sort];
-$sql="SELECT * FROM forms WHERE 1=1"; $params=[];
+$sql="SELECT * FROM forms WHERE COALESCE(form_action_type,'') <> 'default'
+ AND EXISTS (SELECT 1 FROM form_fields ff WHERE ff.form_name=forms.form_name)"; $params=[];
 if($q!==''){$sql.=" AND (form_title LIKE ? OR form_name LIKE ? OR short_code LIKE ?)";$like='%'.$q.'%';$params=[$like,$like,$like];}
 $sql.=" ORDER BY ".$order; $stmt=$pdo->prepare($sql);$stmt->execute($params);$custom=$stmt->fetchAll();
 if($status!=='all' && tableExists($pdo,'users_meta')){$custom=array_values(array_filter($custom,function($f)use($pdo,$status){$s=$pdo->prepare("SELECT value FROM users_meta WHERE `database`='forms' AND database_id=? AND `key`='form_status' LIMIT 1");$s->execute([$f['form_id']]);$v=$s->fetchColumn();return ($v===false?'enabled':$v)===$status;}));}

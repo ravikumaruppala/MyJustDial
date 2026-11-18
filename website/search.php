@@ -62,7 +62,7 @@ render_header(['title' => $listing ? member_name($listing) : 'Search Directory',
             <a class="back-link" href="<?= e(site_url('search.php')) ?>">&laquo; Back to results</a>
             <article class="card listing">
                 <div class="listing-head">
-                    <img src="<?= e(asset_url('images/avatar.svg')) ?>" alt="" width="150" height="150">
+                    <img src="<?= e(!empty($m['profile_photo']) ? site_url($m['profile_photo']) : asset_url('images/avatar.svg')) ?>" alt="<?= e(member_name($m)) ?>" width="150" height="150">
                     <div>
                         <h1><?= e(member_name($m)) ?></h1>
                         <?php if (trim((string)$m['company']) !== ''): ?><div class="result-company" style="margin-bottom:8px"><?= e($m['company']) ?></div><?php endif; ?>
@@ -70,11 +70,12 @@ render_header(['title' => $listing ? member_name($listing) : 'Search Directory',
                     </div>
                 </div>
                 <div class="listing-actions">
-                    <a class="btn btn-dark" <?= modal_attrs($site['forms']['contact'], 'Send Message to ' . member_name($m), (int)$m['user_id']) ?>>Send Message</a>
+                    <a class="btn btn-dark" href="<?= e(site_url('member-message.php?member=' . (int)$m['user_id'])) ?>">Send Message</a>
+                    <a class="btn btn-outline" href="<?= e(site_url('write-review.php?member=' . (int)$m['user_id'])) ?>"><i class="fa fa-star"></i> Write a Review</a>
                     <?php if ($phone !== ''): ?><button class="btn btn-outline" type="button" data-reveal-phone="<?= e($phone) ?>"><i class="fa fa-phone"></i> See Phone Number</button><?php endif; ?>
                     <button class="btn btn-outline save-btn" type="button" data-save-member="<?= (int)$m['user_id'] ?>"><i class="fa fa-bookmark"></i> SAVE</button>
                 </div>
-                <?php if (trim((string)$m['quote']) !== ''): ?><p style="font-size:20px;font-weight:600"><?= e($m['quote']) ?></p><?php endif; ?>
+                <?php if (trim((string)$m['quote']) !== ''): ?><p class="listing-quote"><?= e($m['quote']) ?></p><?php endif; ?>
                 <?php if (trim((string)$m['about_me']) !== ''): ?><div class="post-body"><?= safe_html($m['about_me']) ?></div><?php endif; ?>
                 <div class="listing-meta">
                     <?php if ((int)$m['experience'] > 1900): ?><div><h4>In business since</h4><?= (int)$m['experience'] ?></div><?php endif; ?>

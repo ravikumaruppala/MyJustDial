@@ -19,6 +19,10 @@ function answer(bool $ajax, string $formName, array $result, array $old, string 
         echo json_encode($result, JSON_UNESCAPED_UNICODE);
         exit;
     }
+    if (!empty($result['redirect'])) {
+        header('Location: ' . safe_return_url((string)$result['redirect']));
+        exit;
+    }
     $_SESSION['mjd_form_flash'][$formName] = [
         'ok' => !empty($result['ok']), 'message' => $result['message'] ?? '', 'errors' => $result['errors'] ?? [],
         'old' => !empty($result['ok']) ? [] : $old,
@@ -74,5 +78,6 @@ $result = save_submission($pdo, $form, $values, [
     'member_id' => max(0, (int)($_POST['mjd_ctx_member'] ?? 0)),
     'plan_id' => (int)($plan['subscription_id'] ?? 0),
     'plan_name' => (string)($plan['name'] ?? ''),
+    'reset_token' => (string)($_POST['mjd_reset_token'] ?? ''),
 ]);
 answer($ajax, $formName, $result, $_POST, $return);

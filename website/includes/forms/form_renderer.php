@@ -19,13 +19,36 @@ function form_field_options(PDO $pdo, array $f): array {
     switch ($f['type']) {
         case 'country':      return $lists['countries'];
         case 'state':        return $lists['states'];
-        case 'top_category': return $lists['categories'];
+        case 'top_category':
+            if (tableExists($pdo, 'list_professions')) {
+                return $pdo->query('SELECT name FROM list_professions ORDER BY sort_order, name')->fetchAll(PDO::FETCH_COLUMN);
+            }
+            return $lists['categories'];
         case 'years':
             $year = (int)date('Y');
             return array_map('strval', range($year, $year - 80));
         case 'yes_no':       return ['Yes', 'No'];
     }
     return [];
+}
+
+/** Resolve an administrator-selected PHP template safely. Only a basename in the
+ * website/includes/forms/templates directory can be executed; arbitrary paths/code are rejected. */
+function form_php_template_name(string $content): string {
+    $content = trim($content);
+    if (preg_match('/^<\?php\s*(?:include|require)(?:_once)?\s*\(?\s*[\'\"]([A-Za-z0-9_-]+\.php)[\'\"]\s*\)?\s*;?\s*\?>$/i', $content, $m)) return $m[1];
+    if (preg_match('/^[A-Za-z0-9_-]+\.php$/i', $content)) return $content;
+    return '';
+}
+
+function render_form_php_template(string $filename, array $context = []): string {
+    $base = realpath(__DIR__ . '/templates');
+    $path = realpath(__DIR__ . '/templates/' . basename($filename));
+    if (!$base || !$path || dirname($path) !== $base || strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'php') return '<div class="mjd-notice">The selected form template was not found.</div>';
+    extract($context, EXTR_SKIP);
+    ob_start();
+    include $path;
+    return (string)ob_get_clean();
 }
 
 /** Public entry point: HTML for the form (or a friendly notice when it is unavailable). */
@@ -44,11 +67,56 @@ function render_form(string $name, array $opts = []): string {
     unset($_SESSION['mjd_form_flash'][$form['name']]);
     $old    = $flash['old'] ?? [];
     $errors = $flash['errors'] ?? [];
+    if (!empty($opts['member_id'])) {
+        $memberQuery = $pdo->prepare('SELECT * FROM users_data WHERE user_id=? LIMIT 1');
+        $memberQuery->execute([(int)$opts['member_id']]);
+        $memberRow = $memberQuery->fetch() ?: [];
+        $memberValues = $memberRow;
+        if (!empty($memberRow['profession_id']) && tableExists($pdo,'list_professions')) {
+            $professionQuery=$pdo->prepare('SELECT name FROM list_professions WHERE profession_id=? LIMIT 1');
+            $professionQuery->execute([(int)$memberRow['profession_id']]);
+            $memberValues['profession_id']=(string)($professionQuery->fetchColumn() ?: $memberRow['profession_id']);
+        }
+        if (tableExists($pdo, 'users_meta')) {
+            $metaQuery = $pdo->prepare("SELECT `key`,`value` FROM users_meta WHERE `database`='users_data' AND database_id=?");
+            $metaQuery->execute([(int)$opts['member_id']]);
+            foreach ($metaQuery->fetchAll() as $metaRow) $memberValues[$metaRow['key']] = $metaRow['value'];
+        }
+        if (tableExists($pdo, 'users_photo')) {
+            $photoQuery = $pdo->prepare('SELECT type,file FROM users_photo WHERE user_id=? ORDER BY photo_id DESC');
+            $photoQuery->execute([(int)$opts['member_id']]);
+            foreach ($photoQuery->fetchAll() as $photoRow) {
+                $key = $photoRow['type'] === 'logo' ? 'company_logo' : ($photoRow['type'] === 'photo' ? 'profile_photo' : '');
+                if ($key !== '' && !isset($memberValues[$key])) $memberValues[$key] = $photoRow['file'];
+            }
+        }
+        // The form's current values are the defaults; validation errors take precedence.
+        $old = array_merge($memberValues, $old);
+    }
 
+    $phpTemplate = '';
+    foreach ($form['fields'] as $candidate) {
+        if ($candidate['type'] === 'html') {
+            $phpTemplate = form_php_template_name((string)$candidate['label']);
+            if ($phpTemplate === '') {
+                $phpTemplate = form_php_template_name((string)$candidate['description']);
+            }
+            if ($phpTemplate !== '') break;
+        }
+    }
+    $memberPhotos = ['photo' => '', 'logo' => ''];
+    if (!empty($opts['member_id']) && tableExists($pdo, 'users_photo')) {
+        $photoQuery = $pdo->prepare('SELECT type,file FROM users_photo WHERE user_id=? ORDER BY photo_id DESC');
+        $photoQuery->execute([(int)$opts['member_id']]);
+        foreach ($photoQuery->fetchAll() as $photoRow) {
+            if (($photoRow['type'] === 'photo' && $memberPhotos['photo'] === '') || ($photoRow['type'] === 'logo' && $memberPhotos['logo'] === '')) $memberPhotos[$photoRow['type']] = (string)$photoRow['file'];
+        }
+    }
     $hasSubmit = false;
     $body = '';
     foreach ($form['fields'] as $field) {
         if ($field['type'] === 'submit') { $hasSubmit = true; }
+        if ($phpTemplate !== '' && (($field['type'] === 'file' && in_array($field['name'], ['profile_photo','company_logo'], true)) || $field['name'] === 'photo_upload_section' || $field['name'] === 'photo_format_notice')) continue;
         $body .= render_field($pdo, $form, $field, $old, $errors);
     }
     if (!$hasSubmit) { $body .= '<div class="mjd-field mjd-submit"><button type="submit" class="mjd-submit-btn">Submit</button></div>'; }
@@ -61,6 +129,9 @@ function render_form(string $name, array $opts = []): string {
     $html .= '<input type="hidden" name="mjd_return" value="' . e(current_url()) . '">';
     if (!empty($opts['member_id'])) {
         $html .= '<input type="hidden" name="mjd_ctx_member" value="' . (int)$opts['member_id'] . '">';
+    }
+    if (!empty($opts['reset_token'])) {
+        $html .= '<input type="hidden" name="mjd_reset_token" value="' . e((string)$opts['reset_token']) . '">';
     }
     if (!empty($opts['plan']) && plan_by_key((string)$opts['plan']) !== null) {
         $html .= '<input type="hidden" name="mjd_ctx_plan" value="' . e((string)$opts['plan']) . '">';   // plan chosen on membership-plans.php
@@ -96,7 +167,20 @@ function render_field(PDO $pdo, array $form, array $f, array $old, array $errors
             // No reCAPTCHA keys are configured, so this is a static "I'm not a robot" box (not verified).
             return '<div class="mjd-field"><label class="mjd-check"><input type="checkbox" disabled> I\'m not a robot</label></div>';
         case 'html':
-            $content = $f['description'] !== '' ? $f['description'] : $label;
+            $templateName = form_php_template_name((string)$label);
+            $content = $templateName !== '' ? $label : ($f['description'] !== '' ? $f['description'] : $label);
+            if ($templateName === '') {
+                $templateName = form_php_template_name((string)$content);
+            }
+            if ($templateName !== '') {
+                $memberId = (int)($_POST['mjd_ctx_member'] ?? $_SESSION['member_id'] ?? 0);
+                $photos = ['photo' => '', 'logo' => ''];
+                if ($memberId > 0 && tableExists($pdo, 'users_photo')) {
+                    $q = $pdo->prepare('SELECT type,file FROM users_photo WHERE user_id=? ORDER BY photo_id DESC'); $q->execute([$memberId]);
+                    foreach ($q->fetchAll() as $r) if (($r['type'] === 'photo' && $photos['photo'] === '') || ($r['type'] === 'logo' && $photos['logo'] === '')) $photos[$r['type']] = (string)$r['file'];
+                }
+                return render_form_php_template($templateName, ['mjd_member_photos' => $photos, 'mjd_member_id' => $memberId, 'mjd_form_errors' => $errors]);
+            }
             if (preg_match('/^\s*\[widget=/i', $content)) { return ''; }            // theme widgets are not supported
             // The default "Form Title" placeholder (field name "title") becomes the form's heading.
             if ($f['name'] === 'title' && strpos($content, '<') === false) {
@@ -114,7 +198,7 @@ function render_field(PDO $pdo, array $form, array $f, array $old, array $errors
     $value = $old[$name] ?? $f['defaultValue'];
     $req   = !empty($f['required']);
     $attrs = ' id="' . e($id) . '" name="' . e($name) . '"' . ($f['placeholder'] !== '' ? ' placeholder="' . e($f['placeholder']) . '"' : '');
-    $class = 'mjd-control ' . trim($f['inputClass']);
+    $class = 'mjd-control ' . trim($f['inputClass']) . (strpos($type, 'richtext') === 0 ? ' mjd-ckeditor' : '');
 
     $control = '';
     switch ($type) {
@@ -130,9 +214,14 @@ function render_field(PDO $pdo, array $form, array $f, array $old, array $errors
             $control .= '</select>';
             break;
         case 'radio': case 'yes_no':
-            $control = '<div class="mjd-choices">';
+            $isRating = strpos($name, 'rating_') === 0;
+            $control = '<div class="mjd-choices' . ($isRating ? ' mjd-rating-choices' : '') . '">';
             foreach (form_field_options($pdo, $f) as $i => $opt) {
-                $control .= '<label class="mjd-check"><input type="radio" name="' . e($name) . '" value="' . e($opt) . '"' . ((string)$value === $opt ? ' checked' : '') . '> ' . e($opt) . '</label>';
+                if ($isRating) {
+                    $control .= '<label class="mjd-rating-choice" title="' . e($opt) . ' out of 5"><input type="radio" name="' . e($name) . '" value="' . e($opt) . '"' . ((string)$value === $opt ? ' checked' : '') . '><span aria-hidden="true">★</span><span class="sr-only">' . e($opt) . ' out of 5</span></label>';
+                } else {
+                    $control .= '<label class="mjd-check"><input type="radio" name="' . e($name) . '" value="' . e($opt) . '"' . ((string)$value === $opt ? ' checked' : '') . '> ' . e($opt) . '</label>';
+                }
             }
             $control .= '</div>';
             break;
@@ -155,6 +244,9 @@ function render_field(PDO $pdo, array $form, array $f, array $old, array $errors
             break;
         case 'file':
             $control = '<input class="' . e($class) . '" type="file"' . $attrs . '>';
+            if ($value !== '' && $form['name'] === 'listing_additional_details_form') {
+                $control .= '<small class="mjd-help">Current file: <a href="' . e(site_url((string)$value)) . '" target="_blank" rel="noopener">View uploaded file</a></small>';
+            }
             break;
         default:
             // text, email, tel, url, number, password, date, datetime-local ...

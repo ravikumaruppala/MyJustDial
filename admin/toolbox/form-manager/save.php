@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../../../includes/bootstrap.php';
 require __DIR__ . '/../../../includes/auth.php';
-require __DIR__ . '/../../../includes/form_fields.php';
+require_once __DIR__ . '/../../../includes/form_fields.php';
 
 /* The builder saves with fetch() and expects JSON; a plain form post still works as a fallback. */
 $wantsJson = (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest') || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
@@ -37,9 +37,18 @@ try {
     if (!is_array($fields)) { throw new RuntimeException('Invalid fields data.'); }
     $pdo->beginTransaction();
 
-    $check = $pdo->prepare("SELECT form_name FROM forms WHERE form_id=? FOR UPDATE"); $check->execute([$id]);
-    $oldName = $check->fetchColumn();
-    if ($oldName === false) { throw new RuntimeException('This form cannot be edited.'); }
+    $check = $pdo->prepare("SELECT form_name, form_title FROM forms WHERE form_id=? FOR UPDATE"); $check->execute([$id]);
+    $currentForm = $check->fetch(PDO::FETCH_ASSOC);
+    if (!$currentForm) { throw new RuntimeException('This form cannot be edited.'); }
+    $oldName = $currentForm['form_name'];
+    $currentNickname = (string)($currentForm['form_title'] ?: $oldName);
+    if (tableExists($pdo, 'users_meta')) {
+        $nicknameStmt = $pdo->prepare("SELECT value FROM users_meta WHERE `database`='forms' AND database_id=? AND `key`='form_nickname' LIMIT 1");
+        $nicknameStmt->execute([$id]);
+        $savedNickname = $nicknameStmt->fetchColumn();
+        if ($savedNickname !== false) { $currentNickname = (string)$savedNickname; }
+    }
+    if ($nickname === $currentNickname) { $variable = $oldName; }
     $collision = $pdo->prepare('SELECT form_id FROM forms WHERE form_name=? AND form_id<>?'); $collision->execute([$variable, $id]);
     if ($collision->fetchColumn()) { throw new RuntimeException('That form variable is already in use. Choose a different nickname.'); }
 

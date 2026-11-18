@@ -71,3 +71,16 @@ Google reCAPTCHA (shows a static "I'm not a robot" box), e-mail sending (XAMPP h
 * Blog articles are `data_posts` rows with `post_status = 1`. Import `database/sample_blog_posts.sql` for demo articles.
 * Fonts and icons load from Google Fonts / Font Awesome CDNs, so the browser needs internet.
 * The two pictures are artwork in `assets/images/` (SVG). Replace `hero-landscape.svg` / `canyon.svg` with your photos by changing the file names in `assets/css/website.css` (`.hero`) and `img` tags if you like.
+
+
+## Member dashboard and profile sections
+After successful registration or member login, members are signed in and redirected to `member-dashboard.php`.
+The dashboard links to four editable sections: `contact-details.php`, `profile-photo.php`, `listing-details.php`, and `about-member.php`.
+The profile sections render the forms stored in Admin > Toolbox > Form Manager (`member_contact_details_form`,
+`profile_photo_handler_form`, `listing_additional_details_form`, and `about_member_form`). The automatic seeder preserves
+admin-edited fields, adds missing starter fields, and removes only unchanged legacy About Me starter fields that no longer
+appear in the reference form.
+Profile photos and company logos are saved to `users_photo` (`photo` and `logo` types). Standard profile fields are saved
+to matching `users_data` columns; additional custom fields are saved to `users_meta`.
+The member account pages use a shared dashboard-style shell. The starter profile forms include the contact/location/link
+sections shown in the member reference screens; the About Me starter form contains only its rich-text biography field.

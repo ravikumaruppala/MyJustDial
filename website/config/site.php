@@ -16,7 +16,7 @@ return [
     'forms' => [
         'contact'    => 'contact_form',            // header "Contact" + footer "Contact Us" + "Send Message"
         'login'      => 'member_login',            // header "Login" + footer "Member Login"
-        'join'       => 'signup_free',             // every "Members - Join Today" / "Get Listed Today" button
+        'join'       => 'checkout_free_form',             // every "Members - Join Today" / "Get Listed Today" button
         'newsletter' => 'newsletter_modal_signup', // "Click to Subscribe" + footer envelope icon
     ],
 

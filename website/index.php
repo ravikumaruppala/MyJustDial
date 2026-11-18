@@ -52,10 +52,10 @@ render_header(['title' => '', 'active' => 'home']);
     <div class="container feature-grid">
         <a class="feature-item" href="<?= e(site_url('search.php')) ?>">
             <div class="circle"><i class="fa fa-search"></i></div><h3>Search Members</h3><p>Browse To Find Members</p></a>
-        <a class="feature-item" <?= modal_attrs($site['forms']['contact'], 'Contact Us') ?>>
+        <a class="feature-item" href="<?= e(site_url('contact.php')) ?>">
             <div class="circle"><i class="fa fa-comments-o"></i></div><h3>Contact Members</h3><p>Connect with Members You Like</p></a>
         <a class="feature-item" href="<?= e(site_url('search.php')) ?>">
-            <div class="circle"><i class="fa fa-check-square-o"></i></div><h3>Review Members</h3><p>Share Your Experience Online</p></a>
+            <div class="circle"><i class="fa fa-check-square-o"></i></div><h3>Review Members</h3><p>Choose a listing and share your experience</p></a>
     </div>
 </section>
 

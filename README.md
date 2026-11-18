@@ -94,12 +94,12 @@ MyJustDial/
 
 ## Two-panel Form Builder revision
 - Opening a form (Edit, or Save & Continue after New Form) shows a split screen: field widgets on the left, **Form Preview** on the right.
-- Each field is one widget: Type of Field (same grouped list as the reference), Required Field? (ON/OFF), Field Label, Database Variable, Add Field +, Actions (Duplicate / Delete) and a gear that reveals Placeholder Text, Field Help Text, Default Field Value, Addtl. Field CSS Class, Outer Element ID, Display Settings (Input View, Display View, Lead Previews, Include In Emails, Table View, with Alt. Field boxes) and Admin Only.
+- Each field is one widget: Type of Field (same grouped list as the reference), Required Field? (ON/OFF), Field Label, Database Variable, Add Field +, Actions (Duplicate / Delete) and a gear that reveals Placeholder Text, Field Help Text, Default Field Value, Addtl. Field CSS Class, Outer Element ID, Display Settings (Input View, Display View, Lead Previews, Include In, Table View, with Alt. Field boxes) and Admin Only. For Custom HTML, enter a PHP template filename in the Field Label field.
 - Reorder fields by dragging the dark strip with the hamburger icon (mouse or touch), or focus it and use the Up/Down arrow keys.
 - **Save Changes** (or Ctrl/Cmd+S) stores everything in `forms` / `form_fields` through `save.php` (JSON response), then redraws the right-hand preview from what was stored. A yellow dot on the button means there are unsaved changes.
 - New files: `includes/form_fields.php` (type lists/mapping, field loader), `assets/css/form-builder.css`. Rewritten: `editor.php`, `edit.php`, `save.php`, `assets/js/form-builder.js`.
 - Field types are stored with the platform's own names where they exist (Textbox, Email, Phone, textarea, HTML, Button, HoneyPot, ReCaptcha, YesNo, Password); other types keep the editor key. Existing rows keep their original type value unless you change the type.
-- Display Settings columns map to: Input View = `field_input_view`, Display View = `field_display_view`, Lead Previews = `field_search_view`, Table View = `field_grid_view`, Include In Emails = `field_email_view`. Alt. Field boxes and Admin Only are kept in `json_meta`; Outer Element ID in `display_div_id`.
+- Display Settings columns map to: Input View = `field_input_view`, Display View = `field_display_view`, Lead Previews = `field_search_view`, Table View = `field_grid_view`, Include In = `field_email_view`. Alt. Field boxes and Admin Only are kept in `json_meta`; Outer Element ID in `display_div_id`.
 - Inter is loaded from Google Fonts for the builder page (falls back to Arial offline).
 
 ## UI revision (dashboard, sidebar, login, Form Manager)
@@ -109,3 +109,29 @@ MyJustDial/
 - Login follows the supplied "Admin Area Login" design: eye icon shows/hides the password, "Forgot Password? Click to Reset" replaces the first-time link (it opens `admin/forgot-password.php`, a static page; no e-mail reset exists yet). `admin/setup.php` still works until the first admin exists.
 - Sidebar: hover shows the sub menu in a fly-out beside the item, click expands it downward. **Collapse** sits under Developer Hub, shrinks the bar to icons (icons change colour on hover, labels appear as tooltips/fly-outs) and the choice is remembered. Sub menus other than Form Manager are placeholder links.
 - Form Manager: the Preview column renders each form's real fields as a miniature (`renderMiniForm()` in `includes/form_fields.php`, fitted by `admin.js`); Actions sits to the right of Edit with Font Awesome icons; Status / Type / Sort apply as soon as they are chosen, the search box submits with Enter or the magnifier; Bulk Actions + Apply enable, disable or delete the ticked custom forms (`actions.php?action=bulk`). Sorting also applies to the Default Forms list, and a "Disabled" status filter hides the (always enabled) default forms.
+
+
+## Day 2 Forms and public pages
+
+The shared bootstrap seeds these forms into the existing `forms` and `form_fields` tables when they are missing:
+- `users_basic_contact_form`
+- `profile_photo_handler_form`
+- `listing_additional_details_form`
+- `about_member_form`
+- `checkout_free_form`
+- `checkout_paid_form`
+- `contact_form`, `member_login`, `newsletter_modal_signup`, and `member_review_form` (supporting public-site flows)
+
+The generated shortcodes are `[form=FORM_NAME]`. Public pages render the shortcodes through the existing form renderer and submit through `website/form-submit.php`.
+
+Profile forms require a logged-in member. Their standard columns are updated in `users_data`; additional configured fields are stored in `users_meta`. Profile photo uploads are recorded in `users_photo` and the path is also saved to `users_meta`.
+
+The reference signup screenshot contains a field labelled **“Test 1”**. It appears to be a sample/test field, not a required account attribute, so it is intentionally omitted from the new checkout forms. Checkout asks only for first name, last name, email + confirmation, password + confirmation, and (for paid plans) phone; business name is optional.
+
+Admin and member password reset use secure, one-hour tokens stored in `users_meta`. Configure PHP `mail()` on your local/hosting server for reset emails to be delivered. Paid-plan checkout records the selected subscription on the member account; no payment gateway credentials or payment provider integration were included in the supplied project, so it does not charge a card.
+
+## Profile photo form template
+
+The public member photo form supports an administrator-managed PHP template. In Form Manager, set the Custom HTML field description to `profile-photo-upload.php` (or `<?php include 'profile-photo-upload.php'; ?>`) and save. The template is located at `website/includes/forms/templates/profile-photo-upload.php`. It renders Profile Photo and Profile Logo upload controls, client-side preview, Change and Delete actions. Accepted image formats are JPG/JPEG, GIF, PNG and WEBP, maximum 5 MB. Uploaded photo records are stored in `users_photo` (`type` = `photo` or `logo`) and their paths are mirrored in `users_meta` under `profile_photo` / `company_logo`.
+
+For a custom PHP template, add a `.php` file to `website/includes/forms/templates/` and enter only its filename in the Form Manager Custom HTML field. The Form Manager preview runs the approved template in an authenticated preview frame.

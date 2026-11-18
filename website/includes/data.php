@@ -103,7 +103,19 @@ function get_member(PDO $pdo, int $id): ?array {
     $stmt = $pdo->prepare('SELECT u.* FROM users_data u WHERE ' . member_listing_condition() . ' AND u.user_id = :id LIMIT 1');
     $stmt->execute([':active' => (int)$site['member_active'], ':id' => $id]);
     $row = $stmt->fetch();
-    return $row ?: null;
+    if (!$row) return null;
+    $row['profile_photo'] = '';
+    if (tableExists($pdo, 'users_photo')) {
+        $photo = $pdo->prepare("SELECT file FROM users_photo WHERE user_id=? AND type='photo' ORDER BY photo_id DESC LIMIT 1");
+        $photo->execute([$id]);
+        $row['profile_photo'] = (string)($photo->fetchColumn() ?: '');
+    }
+    if ($row['profile_photo'] === '' && tableExists($pdo, 'users_meta')) {
+        $meta = $pdo->prepare("SELECT `value` FROM users_meta WHERE `database`='users_data' AND database_id=? AND `key`='profile_photo' ORDER BY meta_id DESC LIMIT 1");
+        $meta->execute([$id]);
+        $row['profile_photo'] = (string)($meta->fetchColumn() ?: '');
+    }
+    return $row;
 }
 
 /** Top categories with their sub categories: ['professions' => [...], 'services' => [...]]. */

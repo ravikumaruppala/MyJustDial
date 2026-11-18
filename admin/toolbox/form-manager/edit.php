@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../../../includes/bootstrap.php';
 require __DIR__ . '/../../../includes/auth.php';
-require __DIR__ . '/../../../includes/form_fields.php';
+require_once __DIR__ . '/../../../includes/form_fields.php';
 $id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("SELECT * FROM forms WHERE form_id=?"); $stmt->execute([$id]); $form = $stmt->fetch();
 if (!$form) { flash('warning','Custom form not found or this is a protected default form.'); redirect('/admin/toolbox/form-manager/index.php'); }

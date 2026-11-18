@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../../../includes/bootstrap.php';
 require __DIR__ . '/../../../includes/auth.php';
+require_once __DIR__ . '/../../../website/includes/bootstrap.php';
 
 $id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare('SELECT * FROM forms WHERE form_id = ?');
@@ -58,7 +59,13 @@ $renderField = static function (array $field) use ($fieldData): string {
     }
 
     if ($type === 'section') return '<h4 class="preview-section-title">' . $label . '</h4>';
-    if ($type === 'html') return '<div class="preview-custom-html">' . e($field['field_ldesc'] ?: $field['field_text']) . '</div>';
+    if ($type === 'html') {
+        $template = form_php_template_name((string)$field['field_text']);
+        $content = $template !== '' ? (string)$field['field_text'] : (string)($field['field_ldesc'] ?: $field['field_text']);
+        if ($template === '') $template = form_php_template_name($content);
+        if ($template !== '') return '<div class="preview-custom-html">' . render_form_php_template($template, ['mjd_member_photos'=>['photo'=>'','logo'=>''], 'mjd_member_id'=>0, 'mjd_form_errors'=>[]]) . '</div>';
+        return '<div class="preview-custom-html">' . e($content) . '</div>';
+    }
     if ($type === 'custom') return '<div class="preview-special-field">Custom field: ' . $label . '</div>';
     if ($type === 'help_alert') return '<div class="preview-help-alert">' . e($field['field_ldesc'] ?: $field['field_sdesc'] ?: $field['field_text']) . '</div>';
     if ($type === 'honeypot') return '<div class="preview-special-field">Honeypot spam protection field</div>';

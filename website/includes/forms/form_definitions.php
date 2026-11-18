@@ -26,7 +26,7 @@ function virtual_field(string $type, string $label, string $name, bool $required
 function virtual_forms(): array {
     return [
         'contact_form' => [
-            'title' => 'Contact Us', 'table' => 'website_contacts',
+            'title' => 'Contact Us', 'table' => 'form_inquiries',
             'fields' => [
                 virtual_field('text', 'Your Name', 'yourname', true, ['placeholder' => 'Enter your full name']),
                 virtual_field('email', 'Email Address', 'inquiry_email', true, ['placeholder' => 'you@example.com']),

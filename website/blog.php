@@ -42,7 +42,7 @@ render_header(['title' => $post ? $post['post_title'] : 'Website Blog', 'active'
         <a class="back-link" href="<?= e(site_url('blog.php')) ?>">&laquo; Back to the blog</a>
         <?php if ($post): ?>
             <article class="card post-card">
-                <h1 class="page-title" style="font-size:calc(clamp(28px,4vw,42px) - 5px)"><?= e($post['post_title']) ?></h1>
+                <h1 class="page-title"><?= e($post['post_title']) ?></h1>
                 <div class="post-meta"><?= e(post_date_label($post)) ?><?= $post['post_category'] !== '' ? ' &middot; ' . e($post['post_category']) : '' ?></div>
                 <div class="post-body"><?= do_shortcodes((string)$post['post_content']) /* [form=name] becomes a working form */ ?></div>
             </article>
